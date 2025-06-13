@@ -8,6 +8,16 @@ const server = Fastify({
     logger : true
 });
 
+const serverInit = () =>  {
+    const port = parseInt(process.env.SERVER_PORT || "5001") ;
+    const host = process.env.SERVER_HOST || "localhost";
+    return {
+        port, host
+    }
+}
+
+const {port : serverPort, host : serverHost} = serverInit();
+
 server.register(vectorRoutes, {prefix : "/api/v1/vector"});
 
 server.get("/api/v1/", (request, reply) => {
@@ -19,8 +29,8 @@ server.get("/api/v1/", (request, reply) => {
 });
 
 server.listen({
-    port : 3001,
-    host : "localhost",
+    port : serverPort,
+    host : serverHost,
 }, (err, address) => {
     if (err) {
       console.error(err)
