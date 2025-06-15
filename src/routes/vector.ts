@@ -3,14 +3,13 @@ import { CreateVector } from "../types/vector";
 import { getEmbedding } from "../utils/embedding";
 import { findSimilarVectors, upsertVector } from "../services/vectorServices";
 
-const vectorRoutes : FastifyPluginAsync = async (fastify) => {
+const vectorRoutes: FastifyPluginAsync = async (fastify) => {
+
+
     fastify.post("/create", async (request,reply) => {
         const {blog, id = "abscs"} = request.body as CreateVector;
-        console.log("Original:",blog)
-        // move to service
-        console.log("Upserting Text : ");
+        
         const upsertStatus = await upsertVector(blog, id);
-        console.log("Upsert Status :",upsertStatus);
         return {
             error : null,
             message : "Created!",
