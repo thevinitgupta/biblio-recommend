@@ -7,6 +7,8 @@ import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
 import { getPostQueue } from "./services/queueServices";
 import queueRoutes from "./routes/queue";
 import startPostWorker, { shutdownPostWorker } from "./services/queueWorker";
+import { adminRoutes } from "./routes/admin";
+import { serverInit } from "./config/server";
 
 dotenv.config();
 
@@ -14,25 +16,14 @@ const server = Fastify({
     logger : true
 });
 
-const serverAdapter = new FastifyAdapter();
-createBullBoard({
-    queues: [new BullMQAdapter(getPostQueue())],
-    serverAdapter,
-})
 
-const serverInit = () =>  {
-    const port = parseInt(process.env.SERVER_PORT || "5001") ;
-    const host = process.env.SERVER_HOST || "localhost";
-    return {
-        port, host
-    }
-}
-
-const {port : serverPort, host : serverHost} = serverInit();
+const { port: serverPort, host: serverHost, auth } = serverInit();
 
 
-server.register(serverAdapter.registerPlugin(), {
-    prefix: "/admin/queues"
+
+server.register(adminRoutes, {
+    prefix: "/admin/queues",
+    auth : auth
 });
 
 server.register(vectorRoutes, { prefix: "/api/v1/vector" });

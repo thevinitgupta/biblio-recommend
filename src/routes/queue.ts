@@ -1,8 +1,12 @@
 import fastify, { FastifyPluginAsync } from "fastify";
 import { addPostToQueue } from "../services/queueServices";
+import { authenticateApi } from "../security/api";
 
 const queueRoutes: FastifyPluginAsync = async (fastify) => {
     
+    fastify.addHook("onRequest", authenticateApi)
+
+
     fastify.post("/add", (request, reply) => {
         const { id : blogId } = request.body as { id: string };
         
