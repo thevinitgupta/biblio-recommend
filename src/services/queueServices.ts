@@ -7,7 +7,7 @@ let postQueue: Queue<any, any, string, any, any, string> | null = null;
 
 const getPostQueue = () => {
     if (postQueue != null) return postQueue;
-    console.log("ENV : ",process.env)
+    // console.log("ENV : ",process.env)
     const { BULL_POST_KEY } = process.env;
     if (!BULL_POST_KEY) {
         throw new Error("BULL_POST_KEY must be defined in environment variables.");
@@ -28,7 +28,7 @@ const addPostToQueue = async (blogId: string) => {
         postQueue = getPostQueue();
     }
     
-    await postQueue.add("createPostVector", blogId, {
+    await postQueue.add("createPostVector", {postId : blogId }, {
         attempts: 3,
         backoff: {
             type: "exponential",

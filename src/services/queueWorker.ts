@@ -1,5 +1,6 @@
 import getRedisConnectionData from "../connections/redis";
 import { Worker } from "bullmq";
+import { fetchBlogPostContent } from "./blogPost";
 
 
 let postWorker: Worker | null = null;
@@ -13,8 +14,12 @@ const startPostWorker = () => {
         BULL_POST_KEY!,
         async (job) => {
             console.log(`Processing job ${job.id} with data:`, job.data);
-            
-            console.log(`Job ${job.id} processed successfully.`);
+            const postData = await fetchBlogPostContent(job.data.postId);
+            return {
+                message: `Successfully processed post ${job.data.postId}`,
+                status: 'ok',
+                postData,
+              };
         }, {
             connection: redisConnectionData,
             autorun: false,

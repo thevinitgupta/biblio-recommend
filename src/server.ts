@@ -9,6 +9,7 @@ import queueRoutes from "./routes/queue";
 import startPostWorker, { shutdownPostWorker } from "./services/queueWorker";
 import { adminRoutes } from "./routes/admin";
 import { serverInit } from "./config/server";
+import connectMongoDB from "./connections/mongodb";
 
 dotenv.config();
 
@@ -19,6 +20,8 @@ const server = Fastify({
 
 const { port: serverPort, host: serverHost, auth } = serverInit();
 
+
+connectMongoDB();
 
 
 server.register(adminRoutes, {
