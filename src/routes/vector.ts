@@ -11,7 +11,7 @@ const vectorRoutes: FastifyPluginAsync = async (fastify) => {
     fastify.post("/create", async (request,reply) => {
         const {blog, id = "abscs"} = request.body as CreateVector;
         
-        const upsertStatus = await upsertVector(blog, id);
+        const upsertStatus = {}; //await upsertVector(blog, id);
         return {
             error : null,
             message : "Created!",
