@@ -1,5 +1,8 @@
 import { Pinecone } from "@pinecone-database/pinecone";
 import { getEmbedding } from "../utils/embedding";
+import { UpsertResult } from "../types/vector";
+
+
 
 const createPineconeInstance = () => {
   const pinecone = new Pinecone({
@@ -10,17 +13,18 @@ const createPineconeInstance = () => {
   return { index };
 };
 
-export async function upsertVector(content: string, id: string) {
+export async function upsertVector(embeddings: number[], id: string) : Promise<UpsertResult> {
   try {
     const { index } = createPineconeInstance();
 
-    const embeddings = await getEmbedding(content);
+    // const embeddings = await getEmbedding(content);
     await index.upsert([
       {
         id,
         values: embeddings,
       },
     ]);
+    console.log("Upserted vector with ID:", id);
     return {
       status: "upserted",
       id,
@@ -28,7 +32,7 @@ export async function upsertVector(content: string, id: string) {
   } catch (error) {
     console.log("Error while upserting :", error);
     return {
-      status: "upsert failed",
+      status: "failed",
       id: null,
     };
   }
