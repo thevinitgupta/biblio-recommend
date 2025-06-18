@@ -1,4 +1,5 @@
 import { PostModel } from "../models/post"
+import { PostData } from "../types/post";
 
 export const fetchBlogPostContent = async (postId: string) => {
     try {
@@ -7,7 +8,7 @@ export const fetchBlogPostContent = async (postId: string) => {
             slug : postId
         });
         console.log("FETCHED POST : ", postData);
-        return postData;
+        return postData as PostData;
     } catch (error) {
         console.error(error);
         return null;
