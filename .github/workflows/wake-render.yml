@@ -1,0 +1,15 @@
+name: Wake Render App
+
+on:
+  schedule:
+    - cron: '55 18 * * *' # 11:55 PM IST = 18:55 UTC
+
+jobs:
+  wakeup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Render App Health Endpoint
+        env:
+          SECRET: ${{ secrets.RENDER_HEALTH_SECRET }}
+        run: |
+          curl -s -H "x-health-secret: $SECRET" https://biblio-recommend.onrender.com/api/v1/health
