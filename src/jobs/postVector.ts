@@ -8,7 +8,7 @@ import { PostData } from "../types/post";
 import { addPostToQueue } from "../services/queueServices";
 
 const limit = pLimit(2);
-export const vectorJob = cron.schedule("*/40 * * * * *", async () => {
+export const vectorJob = cron.schedule("30 18 * * *", async () => {
 
     try {
         const pendingPosts = await fetchPostsWithPendingVector();

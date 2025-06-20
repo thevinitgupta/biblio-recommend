@@ -33,13 +33,22 @@ server.register(adminRoutes, {
 server.register(vectorRoutes, { prefix: "/api/v1/vector" });
 server.register(queueRoutes, { prefix: "/api/v1/queue" });
 
-server.get("/api/v1/", (request, reply) => {
-    console.log("Request Hostname : ",request.hostname)
-    return JSON.stringify({
-        code : 200,
-        message : "Hello from Fastify"
-    })
-}); 
+// server.get("/api/v1/", (request, reply) => {
+//     console.log("Request Hostname : ",request.hostname)
+//     return JSON.stringify({
+//         code : 200,
+//         message : "Hello from Fastify"
+//     })
+// }); 
+
+server.get('/api/v1/health', async (req, reply) => {
+    const secret = req.headers['x-health-secret'];
+    if (secret !== process.env.HEALTH_SECRET) {
+      reply.status(403).send({ error: 'Forbidden' });
+      return;
+    }
+    return { status: 'ok', time: new Date().toISOString() };
+  });
 
 server.listen({
     port : serverPort,
