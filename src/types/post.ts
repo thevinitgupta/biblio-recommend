@@ -4,9 +4,12 @@ import { Document } from "mongoose";
 // TODO : Add isVectorized flag that should be false by default, updated on successfull upsert
 // TODO : Cron job to retry all false flag in batch
 
-export interface PostData extends Document{
+export interface PostData {
     title: string;
     content: string;
     createdAt: Date;
     slug: string;
+    vectorStatus: "pending" | "upserted" | "failed" | "dead";
+    retryCount: number;
+    vectorError?: string | null;
 }

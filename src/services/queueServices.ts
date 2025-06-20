@@ -33,7 +33,7 @@ const addPostToQueue = async (blogId: string) => {
         backoff: {
             type: "exponential",
             delay: 200000
-        }
+        },
     });
 }
 

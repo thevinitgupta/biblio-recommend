@@ -10,6 +10,7 @@ import startPostWorker, { shutdownPostWorker } from "./services/queueWorker";
 import { adminRoutes } from "./routes/admin";
 import { serverInit } from "./config/server";
 import connectMongoDB from "./connections/mongodb";
+import { vectorJob } from "./jobs/postVector";
 
 dotenv.config();
 
@@ -54,8 +55,9 @@ server.listen({
             console.error("Worker initialization failed.");
             return;
         }
-
+        
         try {
+            vectorJob.execute();
             postWorker.run();
         }
         catch (error) {

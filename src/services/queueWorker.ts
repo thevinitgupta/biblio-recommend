@@ -1,10 +1,11 @@
 import getRedisConnectionData from "../connections/redis";
 import { Job, Worker } from "bullmq";
-import { fetchBlogPostContent } from "./blogPost";
+import { fetchBlogPostContent, updateBlogVectorStatus } from "./blogPost";
 import { PostData } from "../types/post";
 import { getEmbedding } from "../utils/embedding";
 import { upsertVector } from "./vectorServices";
 import { UpsertResult } from "../types/vector";
+import { withTimeout } from "../utils/withTimeout";
 
 let postWorker: Worker | null = null;
 
@@ -19,13 +20,15 @@ const processQueueItem = async (job: Job): Promise<any> => {
     if (!content?.trim())
       throw new Error(`Content for post ${postId} is empty.`);
 
-    const vectorEmbeddings = await getEmbedding(content);
+    const vectorEmbeddings = await withTimeout(getEmbedding(content),10_000,`Creating embeddings for ${postId} took too long!`);
     if (!vectorEmbeddings?.length)
       throw new Error(`Failed to generate embeddings for post ${postId}.`);
 
     const upserted: UpsertResult = await upsertVector(vectorEmbeddings, postId);
     if (upserted.status !== "upserted")
       throw new Error(`Vector upsert failed for post ${postId}.`);
+
+    const updatedPost = await updateBlogVectorStatus(postId, "upserted", null);
 
     return {
       message: `Successfully processed post ${postId}`,
@@ -34,8 +37,13 @@ const processQueueItem = async (job: Job): Promise<any> => {
     };
   } catch (error) {
     const errMsg = error instanceof Error ? error.message : String(error);
-    console.error(`❌ Error processing job ${postId}:`, errMsg);
     await job.log(`Error: ${errMsg}`);
+
+    try {
+      await updateBlogVectorStatus(postId, "failed", errMsg);
+    } catch (dbError) {
+      console.error(`Failed to update post status in DB for post ${postId}:`, dbError);
+    }
 
     return {
       message: `Error processing post ${postId}`,
@@ -57,6 +65,7 @@ const startPostWorker = (): Worker => {
     connection: redisConnectionData,
     autorun: false,
     concurrency: 1,
+    
   });
 
   postWorker.on("completed", (job) => {

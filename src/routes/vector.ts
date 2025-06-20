@@ -3,6 +3,7 @@ import { CreateVector } from "../types/vector";
 import { getEmbedding } from "../utils/embedding";
 import { findSimilarVectors, upsertVector } from "../services/vectorServices";
 import { authenticateApi } from "../security/api";
+import { fetchPostsWithPendingVector } from "../services/blogPost";
 
 const vectorRoutes: FastifyPluginAsync = async (fastify) => {
 
@@ -10,7 +11,7 @@ const vectorRoutes: FastifyPluginAsync = async (fastify) => {
 
     fastify.post("/create", async (request,reply) => {
         const {blog, id = "abscs"} = request.body as CreateVector;
-        
+        await fetchPostsWithPendingVector();
         const upsertStatus = {}; //await upsertVector(blog, id);
         return {
             error : null,
