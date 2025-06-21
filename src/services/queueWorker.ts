@@ -6,6 +6,7 @@ import { getEmbedding } from "../utils/embedding";
 import { upsertVector } from "./vectorServices";
 import { UpsertResult } from "../types/vector";
 import { withTimeout } from "../utils/withTimeout";
+import { logAlert } from "../utils/monitoring";
 
 let postWorker: Worker | null = null;
 
@@ -20,7 +21,11 @@ const processQueueItem = async (job: Job): Promise<any> => {
     if (!content?.trim())
       throw new Error(`Content for post ${postId} is empty.`);
 
-    const vectorEmbeddings = await withTimeout(getEmbedding(content),10_000,`Creating embeddings for ${postId} took too long!`);
+    const vectorEmbeddings = await withTimeout(
+      getEmbedding(content),
+      10_000,
+      `Creating embeddings for ${postId} took too long!`
+    );
     if (!vectorEmbeddings?.length)
       throw new Error(`Failed to generate embeddings for post ${postId}.`);
 
@@ -40,9 +45,28 @@ const processQueueItem = async (job: Job): Promise<any> => {
     await job.log(`Error: ${errMsg}`);
 
     try {
-      await updateBlogVectorStatus(postId, "failed", errMsg);
+      const updatedPost = await updateBlogVectorStatus(
+        postId,
+        "failed",
+        errMsg
+      );
+      // ✅ Trigger alert only for specific failures
+      if (
+        errMsg.includes("embeddings") ||
+        errMsg.includes("upsert") ||
+        errMsg.includes("took too long")
+      ) {
+        await logAlert(
+          "vector-processing",
+          errMsg,
+          updatedPost?.retryCount || 0
+        );
+      }
     } catch (dbError) {
-      console.error(`Failed to update post status in DB for post ${postId}:`, dbError);
+      console.error(
+        `Failed to update post status in DB for post ${postId}:`,
+        dbError
+      );
     }
 
     return {
@@ -65,7 +89,6 @@ const startPostWorker = (): Worker => {
     connection: redisConnectionData,
     autorun: false,
     concurrency: 1,
-    
   });
 
   postWorker.on("completed", (job) => {
