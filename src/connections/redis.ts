@@ -1,6 +1,8 @@
 import { Queue, QueueOptions } from "bullmq";
 import { RedisConnectionDataI } from "../types/redis";
+import Redis from "ioredis";
 
+let redisInstance : Redis | null = null;
 
 const getRedisConnectionData = () : RedisConnectionDataI => {
 
@@ -19,6 +21,17 @@ const getRedisConnectionData = () : RedisConnectionDataI => {
         port: parseInt(REDIS_PORT, 10),
         password : REDIS_PASSWORD || ""
     };
+}
+
+export const getRedisInstance = () => {
+    if (redisInstance) return redisInstance;
+    // const { REDIS_URL } = process.env;
+    const { host, port, password} = getRedisConnectionData();
+    
+    redisInstance = new Redis(port, host, {
+        password : password
+    });
+    return redisInstance;
 }
 
 

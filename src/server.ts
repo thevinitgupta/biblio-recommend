@@ -68,6 +68,7 @@ server.listen({
         try {
             vectorJob.execute();
             postWorker.run();
+            // logAlert();
         }
         catch (error) {
             console.error("Error starting worker:", error);
