@@ -15,7 +15,13 @@ const processQueueItem = async (job: Job): Promise<any> => {
 
   try {
     const postData: PostData | null = await fetchBlogPostContent(postId);
-    if (!postData) throw new Error(`Post with ID ${postId} not found.`);
+    if (!postData) {
+      return {
+        message: `Post with Post ID : ${postId} already processed, not needed to do again.`,
+        status: "upserted",
+        postData,
+      };
+    }
 
     const { content } = postData;
     if (!content?.trim())

@@ -12,7 +12,14 @@ export const fetchBlogPostContent = async (postId: string) => {
   try {
     const postData = await PostModel.findOne({
       slug: postId,
+      vectorStatus: {
+        $in: ["pending", "failed", null],
+      }
     });
+    if (!postData) {
+      console.warn(`Post with ID ${postId} not found or is empty.`);
+      return null;
+    }
     console.log("FETCHED POST : ", postData);
     return postData as PostData;
   } catch (error) {
