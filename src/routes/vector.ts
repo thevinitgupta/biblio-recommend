@@ -1,7 +1,7 @@
 import { FastifyPluginAsync } from "fastify";
 import { CreateVector } from "../types/vector";
 import { getEmbedding } from "../utils/embedding";
-import { findSimilarVectors, upsertVector } from "../services/vectorServices";
+import { findSimilarVectors, findSimilarVectorsById, upsertVector } from "../services/vectorServices";
 import { authenticateApi } from "../security/api";
 import { fetchPostsWithPendingVector } from "../services/blogPost";
 
@@ -21,9 +21,10 @@ const vectorRoutes: FastifyPluginAsync = async (fastify) => {
     //     }
     // })
 
-    fastify.post('/similar', async (request, reply) => {
-        const { content } = request.body as { content: string };
-        const results = await findSimilarVectors(content);
+    fastify.get('/similar/:postId', async (request, reply) => {
+        const { postId } = request.params as { postId: string };
+        console.log("POST ID : ",postId)
+        const results = await findSimilarVectorsById(postId);
         return reply.send(results);
       });
 }

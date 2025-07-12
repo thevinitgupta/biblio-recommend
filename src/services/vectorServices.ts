@@ -1,6 +1,7 @@
 import { Pinecone } from "@pinecone-database/pinecone";
 import { getEmbedding } from "../utils/embedding";
 import { UpsertResult } from "../types/vector";
+import { SearchResponseDataI, SearchResponseI } from "../types/response";
 
 
 
@@ -54,6 +55,39 @@ export async function findSimilarVectors(content: string) {
     return {
       status: "search failed",
       id: null,
+    };
+  }
+}
+
+
+// searching with ID instead of vector
+export async function findSimilarVectorsById(id: string) : Promise<SearchResponseI> {
+  try {
+    const { index } = createPineconeInstance();
+    const queryResult = await index.query({
+      id,
+      topK: 6,
+      includeMetadata: false,
+      includeValues : false,
+    });
+    const responseData : Array<SearchResponseDataI> = queryResult.matches?.sort((match) => match.score || 0).map((match) => {
+      
+        return {
+          id: match.id,
+          score: match.score || 0,
+        }
+      
+    }).filter((match) => match.id != id);
+    
+    return {
+      data: responseData,
+      error: null,
+    }
+  } catch (error) {
+    console.log(`Error while searching for ID=:${id} ==========> ${error}`);
+    return {
+      error: "search failed : "+error,
+      data: [],
     };
   }
 }
